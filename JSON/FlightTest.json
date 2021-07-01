@@ -1,0 +1,10 @@
+{
+  "browser":"firefox",
+  "email":"emil@gmail.com",
+  "password":"1234",
+  "confirmPassword":"1234",
+  "passengerCount":"2",
+  "dateDay":"23",
+  "toPort":"London",
+  "airlineIndexNumber":"1"
+}
