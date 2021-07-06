@@ -2,77 +2,96 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.openqa.selenium.Platform;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import java.io.FileNotFoundException;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.support.events.EventFiringWebDriver;
+
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.EventListener;
 import java.util.concurrent.TimeUnit;
 
 public class SeleniumInitializer {
     public static WebDriver driver;
-    public static void main(String[] args) throws IOException, ParseException {
-        //Read JSON file data
+    public static EventFiringWebDriver eventFiringWebDriver;
+    public static EventCapture eventCapture;
+    //Event Firing WebDriver setup method
+    public void eventFiringWebDriverSetup(){
+        eventFiringWebDriver=new EventFiringWebDriver(driver);
+        eventCapture=new EventCapture();
+        eventFiringWebDriver.register(eventCapture);
+        eventFiringWebDriver.manage().window().maximize();
+        eventFiringWebDriver.get("http://demo.guru99.com/test/newtours/index.php");
+    }
+    //Read JSON method. Input Values returned as a class
+    public InputValues readJSON() throws IOException,ParseException{
         Object obj = new JSONParser().parse(new FileReader("./JSON/FlightTest.json"));
         JSONObject jsonObject=(JSONObject) obj;
-        String browser = (String) jsonObject.get("browser");
-        String email = (String) jsonObject.get("email");
-        String password= (String) jsonObject.get("password");
-        String confirmPassword=(String) jsonObject.get("confirmPassword");
-        String passengerCount = (String) jsonObject.get("passengerCount");
-        String dateDay = (String) jsonObject.get("dateDay");
-        String toPort = (String) jsonObject.get("toPort");
-        String airlineIndexNumber=(String) jsonObject.get("airlineIndexNumber");
-        //Initialize Browser Driver
+        return new InputValues((String) jsonObject.get("browser"),(String) jsonObject.get("email"),(String) jsonObject.get("password"),(String) jsonObject.get("confirmPassword"),(String) jsonObject.get("passengerCount"),(String) jsonObject.get("dateDay"),(String) jsonObject.get("toPort"),(String) jsonObject.get("airlineIndexNumber"));
+    }
+    //Initialize WebDriver method
+    public void initializeBrowser(String browser) throws MalformedURLException {
+
         if(browser.toLowerCase().equals("chrome")){
-            WebDriverManager.chromedriver().setup();
-            driver=new ChromeDriver();
+            ChromeOptions options=new ChromeOptions();
+            options.setHeadless(true);
+            driver=new RemoteWebDriver(new URL("http://localhost:4444/wd/hub"), options);
         }
         else if(browser.toLowerCase().equals("firefox")){
-            WebDriverManager.firefoxdriver().setup();
-            driver=new FirefoxDriver();
+            FirefoxOptions options = new FirefoxOptions();
+            options.setHeadless(true);
+            driver=new RemoteWebDriver(new URL("http://localhost:4444/wd/hub"), options);
         }
+    }
+    public static void main(String[] args) throws IOException,ParseException,MalformedURLException {
+        SeleniumInitializer seleniumInitializer=new SeleniumInitializer();
+        InputValues inputValues=new InputValues();
+        //Read JSON file data
+        inputValues=seleniumInitializer.readJSON();
+        //Initialize Browser Driver
+        seleniumInitializer.initializeBrowser(inputValues.browser);
+        //Event Firing WebDriver setup
+        seleniumInitializer.eventFiringWebDriverSetup();
         //Create Page Objects
-        HomePage homePage=new HomePage(driver);
-        RegisterPage registerPage=new RegisterPage(driver);
-        RegisterSuccessPage registerSuccessPage=new RegisterSuccessPage(driver);
-        LoginPage loginPage=new LoginPage(driver);
-        LoginSuccessPage loginSuccessPage=new LoginSuccessPage(driver);
-        FlightFinderPage flightFinderPage=new FlightFinderPage(driver);
+        HomePage homePage=new HomePage(eventFiringWebDriver);
+        RegisterPage registerPage=new RegisterPage(eventFiringWebDriver);
+        RegisterSuccessPage registerSuccessPage=new RegisterSuccessPage(eventFiringWebDriver);
+        LoginPage loginPage=new LoginPage(eventFiringWebDriver);
+        LoginSuccessPage loginSuccessPage=new LoginSuccessPage(eventFiringWebDriver);
+        FlightFinderPage flightFinderPage=new FlightFinderPage(eventFiringWebDriver);
         // Register/Login Process
-        driver.get("http://demo.guru99.com/test/newtours/index.php");
+        //Set Implicit Timeout
+        eventFiringWebDriver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
         homePage.clickRegisterLink();
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-        registerPage.inputEmail(email);
-        registerPage.inputPassword(password);
-        registerPage.inputConfirmPassword(confirmPassword);
+        registerPage.inputEmail(inputValues.email);
+        registerPage.inputPassword(inputValues.password);
+        registerPage.inputConfirmPassword(inputValues.confirmPassword);
         registerPage.clickSubmitButton();
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
         registerSuccessPage.clickSignInLink();
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-        loginPage.inputEmail(email);
-        loginPage.inputPassword(password);
+        loginPage.inputEmail(inputValues.email);
+        loginPage.inputPassword(inputValues.password);
         loginPage.clickSubmitButton();
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
         // Find Flight process
         loginSuccessPage.clickHomeLink();
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-        homePage.inputEmail(email);
-        homePage.inputPassword(password);
+        homePage.inputEmail(inputValues.email);
+        homePage.inputPassword(inputValues.password);
         homePage.clickSubmitButton();
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
         loginSuccessPage.clickFlightsLink();
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
         flightFinderPage.selectOneWay();
-        flightFinderPage.selectPassengerCount(passengerCount);
-        flightFinderPage.selectToPort(toPort);
-        flightFinderPage.selectToDateDay(dateDay);
+        flightFinderPage.selectPassengerCount(inputValues.passengerCount);
+        flightFinderPage.selectToPort(inputValues.toPort);
+        flightFinderPage.selectToDateDay(inputValues.dateDay);
         flightFinderPage.selectBusinessClassRadioButton();
-        flightFinderPage.selectAirline(Integer.parseInt(airlineIndexNumber));
+        flightFinderPage.selectAirline(Integer.parseInt(inputValues.airlineIndexNumber));
         flightFinderPage.clickContinueButton();
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-        driver.close();
+        eventFiringWebDriver.close();
     }
 }

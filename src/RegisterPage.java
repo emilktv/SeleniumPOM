@@ -4,13 +4,13 @@ import org.openqa.selenium.support.FindBy;
 
 public class RegisterPage extends PageInitialisation{
     public RegisterPage(WebDriver driver) { super(driver); }
-    @FindBy(xpath="//input[@id='email']")
+    @FindBy(id="email")
     WebElement emailInputBox;
-    @FindBy(xpath ="//input[@name='password']")
+    @FindBy(name ="password")
     WebElement passwordInputBox;
-    @FindBy(xpath = "//input[@name='confirmPassword']")
+    @FindBy(name = "confirmPassword")
     WebElement confirmPasswordInputBox;
-    @FindBy(xpath = "//input[@name='submit']")
+    @FindBy(name = "submit")
     WebElement submitButton;
     public void inputEmail(String email){emailInputBox.sendKeys(email);}
     public void inputPassword(String password){passwordInputBox.sendKeys(password);}

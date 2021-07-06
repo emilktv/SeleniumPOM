@@ -7,17 +7,17 @@ public class FlightFinderPage extends PageInitialisation{
     public FlightFinderPage(WebDriver driver) { super(driver); }
     @FindBy(xpath = "//input[@value='oneway']")
     WebElement oneWayRadioButton;
-    @FindBy(xpath = "//select[@name='passCount']")
+    @FindBy(name = "passCount")
     WebElement passengerCount;
-    @FindBy(xpath = "//select[@name='toPort']")
+    @FindBy(name = "toPort")
     WebElement toPort;
-    @FindBy(xpath = "//select[@name='toDay']")
+    @FindBy(name = "toDay")
     WebElement toDateDay;
     @FindBy( xpath= "//input[@value='Business']")
     WebElement businessClassRadioButton;
-    @FindBy(xpath = "//select[@name='airline']")
+    @FindBy(name= "airline")
     WebElement airline;
-    @FindBy(xpath = "//input[@name='findFlights']")
+    @FindBy(name = "findFlights")
     WebElement continueButton;
     public void selectOneWay(){oneWayRadioButton.click();}
     public void selectPassengerCount(String count){

@@ -6,11 +6,11 @@ public class HomePage extends PageInitialisation {
     public HomePage(WebDriver driver){ super(driver);}
     @FindBy(linkText="REGISTER")
     WebElement registerLink;
-    @FindBy(xpath = "//input[@name='userName']")
+    @FindBy(name = "userName")
     WebElement emailInputBox;
-    @FindBy(xpath = "//input[@name='password']")
+    @FindBy(name = "password")
     WebElement passwordInputBox;
-    @FindBy(xpath = "//input[@name='submit']")
+    @FindBy(name = "submit")
     WebElement submitButton;
     public void clickRegisterLink(){ registerLink.click();}
     public void inputEmail(String email){ emailInputBox.sendKeys(email);}
